@@ -5,9 +5,9 @@
 
 -- Window rules ---------------------------------------------------------------
 
--- Slight translucency for terminals and the file manager (blur is on).
-hl.window_rule({ name = "terminal-opacity", match = { class = "^(kitty)$" },           opacity = "0.95 0.88" })
-hl.window_rule({ name = "dolphin-opacity",  match = { class = "^(org\\.kde\\.dolphin)$" }, opacity = "0.96 0.92" })
+-- Keep terminals and the file manager fully opaque.
+hl.window_rule({ name = "terminal-opacity", match = { class = "^(kitty)$" },           opacity = "1.0 1.0" })
+hl.window_rule({ name = "dolphin-opacity",  match = { class = "^(org\\.kde\\.dolphin)$" }, opacity = "1.0 1.0" })
 
 -- Utility windows open floating and centred instead of tiling.
 hl.window_rule({
