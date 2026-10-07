@@ -1,0 +1,29 @@
+# matugen: kitty, starship and waybar colors follow the wallpaper.
+# Run by ~/.local/bin/matugen-wallwatch whenever awww shows a new wallpaper.
+
+[config]
+
+# Fixed hues for terminal ANSI colors, blended toward the wallpaper's palette
+# so red still reads as red, green as green, etc.
+[config.custom_colors]
+red     = "#E05570"
+green   = "#5CC48A"
+yellow  = "#E0B860"
+blue    = "#5B8BE8"
+magenta = "#B07AE6"
+cyan    = "#5FB8D0"
+
+[templates.kitty]
+input_path  = '~/.config/matugen/templates/kitty-theme.conf'
+output_path = '~/.config/kitty/theme.conf'
+# SIGUSR1 makes every running kitty reload its config (and so this theme)
+post_hook   = 'pkill -USR1 -x kitty || true'
+
+[templates.starship]
+input_path  = '~/.config/matugen/templates/starship.toml'
+output_path = '~/.config/starship.toml'
+
+[templates.waybar]
+input_path  = '~/.config/matugen/templates/waybar-colors.css'
+output_path = '~/.config/waybar/colors.css'
+# No hook needed: waybar watches colors.css (reload_style_on_change) and restyles itself

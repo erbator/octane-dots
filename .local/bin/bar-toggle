@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+# Switch the top bar between Waybar and the Quickshell "pill" shell.
+PILL="$HOME/.config/quickshell/pill/launch.sh"
+
+if pgrep -x waybar >/dev/null; then
+    pkill -x waybar
+    setsid -f "$PILL" >/dev/null 2>&1
+else
+    pkill -f "quickshell --config $HOME/.config/quickshell/pill"
+    pkill -f "qs -c $HOME/.config/quickshell/pill"
+    setsid -f waybar >/dev/null 2>&1
+fi

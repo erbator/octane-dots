@@ -1,0 +1,121 @@
+colors:
+  # Wallpaper palette (s_e_e_d_ii) — see ~/Images/wallpaper-palette.txt
+  background_color: '0A0B13'
+  fg: 'C9CFE0'
+  fgdim: '959FB8'
+  muted: '606990'
+  surface: '232838'
+  black: '05060A'
+  violet: '8B63E0'
+  orchid: 'B07AE6'
+  indigo: '7067D6'
+  blue: '5B8BE8'
+  cyan: '7AB0D8'
+  teal: '6FB8A0'
+  rose: 'D16A8A'
+  gold: 'CDB37E'
+
+core:
+  normal_text: {}
+  regular_file: {}
+  reset_to_normal: {}
+
+  directory:
+    foreground: blue
+    font-style: bold
+
+  symlink:
+    foreground: cyan
+
+  multi_hard_link: {}
+
+  fifo:
+    foreground: black
+    background: blue
+
+  socket:
+    foreground: black
+    background: violet
+
+  door:
+    foreground: black
+    background: violet
+
+  block_device:
+    foreground: cyan
+    background: surface
+
+  character_device:
+    foreground: orchid
+    background: surface
+
+  broken_symlink:
+    foreground: black
+    background: rose
+
+  missing_symlink_target:
+    foreground: black
+    background: rose
+
+  setuid: {}
+
+  setgid: {}
+
+  file_with_capability: {}
+
+  sticky_other_writable: {}
+
+  other_writable: {}
+
+  sticky: {}
+
+  executable_file:
+    foreground: teal
+    font-style: bold
+
+text:
+  special:
+    foreground: background_color
+    background: gold
+
+  todo:
+    font-style: bold
+
+  licenses:
+    foreground: fgdim
+
+  configuration:
+    foreground: gold
+
+  other:
+    foreground: fgdim
+
+markup:
+  foreground: gold
+
+programming:
+  source:
+    foreground: orchid
+
+  tooling:
+    foreground: orchid
+
+    continuous-integration:
+      foreground: orchid
+
+media:
+  foreground: violet
+
+office:
+  foreground: rose
+
+archives:
+  foreground: indigo
+  font-style: underline
+
+executable:
+  foreground: teal
+  font-style: bold
+
+unimportant:
+  foreground: muted

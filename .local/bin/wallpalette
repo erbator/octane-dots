@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Print a palette taken from a wallpaper's own colors, as JSON for matugen.
+
+    wallpalette IMAGE > palette.json
+    matugen image IMAGE --import-json palette.json   # templates use {{wall.<name>}}
+
+Backgrounds and text use the image's dominant hue (very dark / light);
+accents use its most colorful hues, toned down so they stay readable.
+"""
+import colorsys
+import json
+import subprocess
+import sys
+
+
+def clusters(image):
+    """(pixel count, (r, g, b) in 0..1) for the image's main colors."""
+    out = subprocess.run(
+        ["magick", image + "[0]", "-resize", "200x200", "-kmeans", "12",
+         "-format", "%c", "histogram:info:-"],
+        capture_output=True, text=True, check=True).stdout
+    result = []
+    for line in out.splitlines():
+        count, _, rest = line.strip().partition(":")
+        hexpos = rest.find("#")
+        if not count.strip().isdigit() or hexpos < 0:
+            continue
+        h = rest[hexpos + 1:hexpos + 7]
+        result.append((int(count), tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))))
+    return sorted(result, reverse=True)
+
+
+def hls(rgb):
+    return colorsys.rgb_to_hls(*rgb)
+
+
+def hexcolor(h, l, s):
+    r, g, b = colorsys.hls_to_rgb(h % 1.0, max(0, min(1, l)), max(0, min(1, s)))
+    return "#%02x%02x%02x" % tuple(round(v * 255) for v in (r, g, b))
+
+
+def hue_dist(a, b):
+    d = abs(a - b) % 1.0
+    return min(d, 1 - d)
+
+
+def main():
+    if len(sys.argv) != 2:
+        sys.exit("usage: wallpalette IMAGE")
+    cols = clusters(sys.argv[1])
+    total = sum(c for c, _ in cols) or 1
+
+    # Base hue: the most common color that has some color in it at all.
+    tinted = [(c, hls(rgb)) for c, rgb in cols if hls(rgb)[2] > 0.08 and 0.04 < hls(rgb)[1] < 0.96]
+    base_h, _, base_s = (tinted[0][1] if tinted else (0.62, 0.5, 0.0))
+    base_s = min(base_s, 0.35)
+
+    # Accent hues: most colorful clusters (saturation x weight), at least 30° apart.
+    ranked = sorted(
+        ((s * (0.5 + l) * (c / total) ** 0.3, h, s) for c, rgb in cols
+         for h, l, s in [hls(rgb)] if 0.06 < l < 0.94),
+        reverse=True)
+    hues = []
+    for _, h, s in ranked:
+        if s < 0.12:
+            continue
+        if all(hue_dist(h, x) > 30 / 360 for x, _ in hues):
+            hues.append((h, s))
+        if len(hues) == 3:
+            break
+    if not hues:  # grey image: neutral accents around the base hue
+        hues = [(base_h, 0.08)]
+    while len(hues) < 3:  # fill in with neighbours of the main accent
+        h, s = hues[0]
+        hues.append(((h + (len(hues) % 2 and 1 or -1) * 40 / 360) % 1.0, s))
+
+    acc_s = lambda s: max(0.10, min(0.55, s * 0.8))
+    pal = {
+        "bg":       hexcolor(base_h, 0.065, base_s),
+        "surface":  hexcolor(base_h, 0.11, base_s),
+        "surface2": hexcolor(base_h, 0.17, base_s),
+        "fg":       hexcolor(base_h, 0.86, min(base_s, 0.15)),
+        "fgdim":    hexcolor(base_h, 0.62, min(base_s, 0.15)),
+    }
+    for i, (h, s) in enumerate(hues, 1):
+        pal[f"accent{i}"] = hexcolor(h, 0.72, acc_s(s))   # bright terminal colors
+        pal[f"ansi{i}"]   = hexcolor(h, 0.58, acc_s(s))   # normal terminal colors
+        pal[f"seg{i}"]    = hexcolor(h, 0.60, acc_s(s))   # prompt segments (dark text on top)
+    json.dump({"wall": pal}, sys.stdout, indent=2)
+    print()
+
+
+if __name__ == "__main__":
+    main()

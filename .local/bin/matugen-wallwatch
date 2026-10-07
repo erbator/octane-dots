@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Re-run matugen whenever awww shows a new wallpaper on the focused monitor,
+# so kitty and starship colors follow the wallpaper (see ~/.config/matugen/config.toml).
+# Works no matter what changed the wallpaper: the pill panel, `awww img`, a restore at login.
+# Started from Hyprland autostart; only one copy runs at a time.
+
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/matugen-wallwatch.lock"
+flock -n 9 || exit 0
+
+current_wallpaper() {
+    local mon
+    mon=$(hyprctl monitors -j 2>/dev/null | jq -r '[.[] | select(.focused)] | first.name // empty')
+    awww query 2>/dev/null | awk -v m="$mon" -F'image: ' '
+        index($0, ": " m ":") == 1 && NF > 1 { print $2; found = 1; exit }
+        NF > 1 && !first { first = $2 }
+        END { if (!found && first) print first }'
+}
+
+last=""
+while :; do
+    wall=$(current_wallpaper)
+    if [ -n "$wall" ] && [ "$wall" != "$last" ] && [ -f "$wall" ]; then
+        pal="${XDG_RUNTIME_DIR:-/tmp}/wallpalette.json"
+        # wall.* = the image's own colors (~/.local/bin/wallpalette); colors.* = matugen's
+        ~/.local/bin/wallpalette "$wall" > "$pal" \
+            && matugen image "$wall" -m dark --prefer saturation --import-json "$pal" -q \
+            && last="$wall"
+    fi
+    sleep 2
+done
